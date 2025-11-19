@@ -1,0 +1,55 @@
+T_FUNCION miRobotAvance() {
+    // Nombres únicos para esta función
+    VARIABLE vel_izq_avance: T_NUMERO = 115 + 20;
+    VARIABLE vel_der_avance: T_NUMERO = 115 + 0;
+    motor_izquierdo(vel_izq_avance);
+    motor_derecho(vel_der_avance)
+}
+
+T_FUNCION miGirarIzquierdaSuave() {
+    // Nombres únicos para esta función
+    VARIABLE vel_izq_giz: T_NUMERO = 32 + 20;
+    VARIABLE vel_der_giz: T_NUMERO = 115 + 0;
+    motor_izquierdo(vel_izq_giz);
+    motor_derecho(vel_der_giz)
+}
+
+T_FUNCION miGirarDerechaSuave() {
+    // Nombres únicos para esta función
+    VARIABLE vel_izq_gde: T_NUMERO = 115 + 20;
+    VARIABLE vel_der_gde: T_NUMERO = 32 + 0;
+    motor_izquierdo(vel_izq_gde);
+    motor_derecho(vel_der_gde)
+}
+
+{
+    CONSTANTE sensorIzqPin: T_NUMERO = 8;
+    CONSTANTE sensorDerPin: T_NUMERO = 9;
+    VARIABLE lecturaSensorIzq: T_NUMERO = 0;
+    VARIABLE lecturaSensorDer: T_NUMERO = 0;
+    
+    MIENTRAS (VERDADERO) {
+        
+        lecturaSensorIzq = leer_sensor(sensorIzqPin);
+        lecturaSensorDer = leer_sensor(sensorDerPin);
+
+        SI (lecturaSensorIzq == 0 && lecturaSensorDer == 0) {
+            miRobotAvance() // (0, 0) - Avanzar
+        }
+        SINO {
+            SI (lecturaSensorIzq == 1 && lecturaSensorDer == 0) {
+                miGirarDerechaSuave() // (1, 0) - Girar Derecha
+            }
+            SINO {
+                SI (lecturaSensorIzq == 0 && lecturaSensorDer == 1) {
+                    miGirarIzquierdaSuave() // (0, 1) - Girar Izquierda
+                }
+                SINO {
+                    parar() // (1, 1) - Parar (línea perdida)
+                }
+            }
+        };
+        esperar(20)
+        
+    }
+}
