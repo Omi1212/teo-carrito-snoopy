@@ -1,42 +1,33 @@
 /* ================================================================== */
 /* =                          vm.cpp                                = */
-/* =          (CON DEBUG: Muestra sensores y motores)               = */
+/* =             (OPTIMIZADO CON MACRO F())                         = */
 /* ================================================================== */
 
 #include "vm.h"
 #include "Arduino.h" 
 
-// --- CONSTANTES DE CALIBRACIÓN ---
 const int AJUSTE_POTENCIA_IZQ = 20; 
 const int AJUSTE_POTENCIA_DER = 0;  
 
-// --- DEFINICIÓN DE PINES ---
 const int ENA_PIN = 5;
 const int IN1_PIN = 2;
 const int IN2_PIN = 3;
 const int ENB_PIN = 6;
 const int IN3_PIN = 4;
 const int IN4_PIN = 7;
-const int SENSOR_IZQ_PIN = 8;
-const int SENSOR_DER_PIN = 9;
-
-// --- IMPLEMENTACIÓN DE HARDWARE ---
 
 void robot_parar() { 
-    Serial.println("CMD: PARAR"); // DEBUG
+    Serial.println(F("CMD: PARAR")); 
     digitalWrite(IN1_PIN, LOW); digitalWrite(IN2_PIN, LOW); analogWrite(ENA_PIN, 0);
     digitalWrite(IN3_PIN, LOW); digitalWrite(IN4_PIN, LOW); analogWrite(ENB_PIN, 0);
 }
 
 void robot_esperar(int ms) { 
-    // Serial.print("CMD: Esperar "); Serial.println(ms); // Descomenta si quieres ver las esperas
     delay(ms); 
 }
 
-// Control Motor Izquierdo con DEBUG
 void robot_motor_izquierdo(int velocidad) {
     int pwm;
-    
     if (velocidad > 0) {
         pwm = constrain(velocidad + AJUSTE_POTENCIA_IZQ, 0, 255); 
         digitalWrite(IN1_PIN, LOW); digitalWrite(IN2_PIN, HIGH);
@@ -48,15 +39,11 @@ void robot_motor_izquierdo(int velocidad) {
         digitalWrite(IN1_PIN, LOW); digitalWrite(IN2_PIN, LOW);
     }
     analogWrite(ENA_PIN, pwm);
-
-    // --- DEBUG SERIAL ---
-    Serial.print("M_IZQ (pwm): "); Serial.println(pwm);
+    // Serial.print(F("M_IZQ: ")); Serial.println(pwm); // Comentar para ahorrar más
 }
 
-// Control Motor Derecho con DEBUG
 void robot_motor_derecho(int velocidad) {
     int pwm;
-
     if (velocidad > 0) {
         pwm = constrain(velocidad + AJUSTE_POTENCIA_DER, 0, 255);
         digitalWrite(IN3_PIN, LOW); digitalWrite(IN4_PIN, HIGH);
@@ -68,77 +55,62 @@ void robot_motor_derecho(int velocidad) {
         digitalWrite(IN3_PIN, LOW); digitalWrite(IN4_PIN, LOW);
     }
     analogWrite(ENB_PIN, pwm);
-
-    // --- DEBUG SERIAL ---
-    Serial.print("M_DER (pwm): "); Serial.println(pwm);
+    // Serial.print(F("M_DER: ")); Serial.println(pwm); // Comentar para ahorrar más
 }
 
 int robot_leer_sensor(int id_sensor) { 
     int lectura = digitalRead(id_sensor);
-    
-    // --- DEBUG SERIAL ---
-    // Imprime "S_8: 0" o "S_9: 1" para que sepas qué ve cada pin
-    Serial.print("Sensor_"); Serial.print(id_sensor); 
-    Serial.print(": "); Serial.println(lectura);
-
+    Serial.print(F("S_")); Serial.print(id_sensor); 
+    Serial.print(F(": ")); Serial.println(lectura);
     return lectura; 
 }
 
-// --- MOVIMIENTOS DE ALTO NIVEL ---
-
 void robot_mover_adelante(int v) {
-    Serial.println("--- AVANZAR ---");
-    robot_motor_izquierdo(v);
-    robot_motor_derecho(v);
+    Serial.println(F("FWD"));
+    robot_motor_izquierdo(v); robot_motor_derecho(v);
 }
 
 void robot_mover_atras(int v) {
-    Serial.println("--- ATRAS ---");
-    robot_motor_izquierdo(-v);
-    robot_motor_derecho(-v);
+    Serial.println(F("BWD"));
+    robot_motor_izquierdo(-v); robot_motor_derecho(-v);
 }
 
 void robot_girar_izquierda(int v) {
-    Serial.println("--- GIRAR IZQ ---");
-    robot_motor_izquierdo(-v);
-    robot_motor_derecho(v);
+    Serial.println(F("LEFT"));
+    robot_motor_izquierdo(-v); robot_motor_derecho(v);
 }
 
 void robot_girar_derecha(int v) {
-    Serial.println("--- GIRAR DER ---");
-    robot_motor_izquierdo(v);
-    robot_motor_derecho(-v);
+    Serial.println(F("RIGHT"));
+    robot_motor_izquierdo(v); robot_motor_derecho(-v);
 }
 
 void robot_curva_izquierda(int v) {
-    Serial.println("--- CURVA IZQ ---");
-    robot_motor_izquierdo(v / 3); 
-    robot_motor_derecho(v);
+    Serial.println(F("C_LEFT"));
+    robot_motor_izquierdo(v / 3); robot_motor_derecho(v);
 }
 
 void robot_curva_derecha(int v) {
-    Serial.println("--- CURVA DER ---");
-    robot_motor_izquierdo(v);
-    robot_motor_derecho(v / 3);
+    Serial.println(F("C_RIGHT"));
+    robot_motor_izquierdo(v); robot_motor_derecho(v / 3);
 }
 
-// --- LÓGICA INTERNA DE LA VM ---
 static void runtimeError(VM* vm, const char* msg) {
-    Serial.print("Error VM: "); Serial.println(msg); vm->ip = NULL; 
+    Serial.print(F("Err: ")); Serial.println(msg); vm->ip = NULL; 
 }
 static void push(VM* vm, Value value) {
     if (vm->ip == NULL) return;
-    if (vm->stackTop - vm->stack >= STACK_MAX) { runtimeError(vm, "Stack overflow"); return; }
+    if (vm->stackTop - vm->stack >= STACK_MAX) { runtimeError(vm, "Stack ovf"); return; }
     *vm->stackTop = value; vm->stackTop++;
 }
 static Value pop(VM* vm) {
     if (vm->ip == NULL) return 0.0;
-    if (vm->stackTop == vm->stack) { runtimeError(vm, "Stack empty"); return 0.0; }
+    if (vm->stackTop == vm->stack) { runtimeError(vm, "Stack emp"); return 0.0; }
     vm->stackTop--; return *vm->stackTop;
 }
 static Value peek(VM* vm, int distance) {
     if (vm->ip == NULL) return 0.0;
-    if (vm->stackTop - vm->stack <= distance) { runtimeError(vm, "Stack underflow"); return 0.0; }
+    if (vm->stackTop - vm->stack <= distance) { runtimeError(vm, "Stack und"); return 0.0; }
     return vm->stackTop[-1 - distance];
 }
 static bool isFalsy(Value value) { return value == 0.0; }
@@ -160,10 +132,6 @@ InterpretResult vm_interpretar(VM* vm) {
     for (;;) {
         if(vm->ip == NULL) return INTERPRET_RUNTIME_ERROR;
         byte instruction = READ_BYTE();
-        
-        // DEBUG DE INSTRUCCIONES (Opcional: Descomenta si quieres ver el código opcode paso a paso)
-        // Serial.print("OP: 0x"); Serial.println(instruction, HEX);
-
         switch (instruction) {
             case OP_HALT: return INTERPRET_OK;
             case OP_PUSH_CONST: push(vm, READ_CONST()); break;
@@ -213,7 +181,7 @@ InterpretResult vm_interpretar(VM* vm) {
                 Value id = pop(vm); if(vm->ip) { int res = robot_leer_sensor((int)id); push(vm, (Value)res); }
                 break;
             }
-            default: runtimeError(vm, "Opcode desconocido"); break;
+            default: runtimeError(vm, "Opcode?"); break;
         }
     }
 }

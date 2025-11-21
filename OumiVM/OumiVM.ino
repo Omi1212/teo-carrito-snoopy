@@ -1,86 +1,91 @@
 /* ================================================================== */
 /* =                       OumiVM.ino                               = */
+/* =           (OPTIMIZADO CON MACRO F() Y MENOR BUFFER)            = */
 /* ================================================================== */
 
+#include <SPI.h>
+#include <SD.h>
 #include "vm.h"
 
-/* --- AQUÍ PEGAS EL BYTECODE DE TU PC --- */
-// (Mismo bytecode que compartiste al inicio)
-const Value CONSTANT_POOL[] = {
-    115.000000, 20.000000, 115.000000, 0.000000, 0.000000,
-    32.000000, 20.000000, 115.000000, 0.000000, 0.000000,
-    115.000000, 20.000000, 32.000000, 0.000000, 0.000000,
-    8.000000, 9.000000, 0.000000, 0.000000, 1.000000,
-    0.000000, 0.000000, 3.000000, 1.000000, 0.000000,
-    55.000000, 0.000000, 1.000000, 29.000000, 20.000000,
-};
-#define CONSTANT_COUNT 30
+const int PIN_MOTOR_ENA = 5;
+const int PIN_MOTOR_ENB = 6;
+const int PIN_IN1 = 2;
+const int PIN_IN2 = 3;
+const int PIN_IN3 = 4;
+const int PIN_IN4 = 7;
+const int PIN_SENSOR_IZQ = 8;
+const int PIN_SENSOR_DER = 9;
+const int SD_CS_PIN = 10; 
 
-const byte BYTECODE[] = {
-    0x12, 0x00, 0x17, 0x00, 0x00, 0x00, 0x01, 0x03, 0x0E, 0x00,
-    0x00, 0x02, 0x00, 0x03, 0x03, 0x0E, 0x01, 0x0F, 0x00, 0x1F,
-    0x0F, 0x01, 0x1E, 0x00, 0x04, 0x16, 0x12, 0x00, 0x17, 0x00,
-    0x05, 0x00, 0x06, 0x03, 0x0E, 0x02, 0x00, 0x07, 0x00, 0x08,
-    0x03, 0x0E, 0x03, 0x0F, 0x02, 0x1F, 0x0F, 0x03, 0x1E, 0x00,
-    0x09, 0x16, 0x12, 0x00, 0x17, 0x00, 0x0A, 0x00, 0x0B, 0x03,
-    0x0E, 0x04, 0x00, 0x0C, 0x00, 0x0D, 
-    0x03, 0x0E, 0x05, 0x0F,
-    0x04, 0x1F, 0x0F, 0x05, 0x1E, 0x00, 0x0E, 0x16, 0x00, 0x0F,
-    0x0E, 0x06, 0x00, 0x10, 0x0E, 0x07, 0x00, 0x11, 0x0E, 0x08,
-    0x00, 0x12, 0x0E, 0x09, 0x00, 0x13, 0x13, 0x00, 0x53, 0x0F,
-    0x06, 0x21, 0x0E, 0x08, 0x0F, 0x07, 0x21, 0x0E, 0x09, 0x0F,
-    0x08, 0x00, 0x14, 0x09, 0x0F, 0x09, 0x00, 0x15, 0x09, 0x0C,
-    0x13, 0x00, 0x08, 0x00, 0x16, 0x15, 0x00, 0x01, 0x12, 0x00,
-    0x2D, 0x0F, 0x08, 0x00, 0x17, 0x09, 0x0F, 0x09, 0x00, 0x18,
-    0x09, 0x0C, 
-    0x13, 0x00, 0x08, 0x00, 0x19, 0x15, 0x00, 0x01, 
-    0x12, 0x00, 0x17, 0x0F, 0x08, 0x00, 0x1A, 0x09, 0x0F, 0x09,
-    0x00, 0x1B, 0x09, 0x0C, 0x13, 0x00, 0x08, 0x00, 0x1C, 0x15,
-    0x00, 0x01, 0x12, 0x00, 0x01, 0x20, 0x00, 0x1D, 0x19, 0x14,
-    0x00, 0x58, 0x02,
-};
+// --- AHORRO DE MEMORIA ---
+// Reducido a 256 bytes. Suficiente para scripts medianos.
+byte GLOBAL_BYTECODE_BUFFER[256]; 
 
 VM vm;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("--- VM del Robot Iniciada con Calibracion ---");
+  // Usamos F() para guardar texto en Flash y no en RAM
+  Serial.println(F("--- Robot Oumi (Modo SD) ---"));
 
-  // --- CONFIGURACIÓN DE PINES ---
-  // Copiados exactamente de tu código funcional 
-  pinMode(5, OUTPUT); // ENA
-  pinMode(6, OUTPUT); // ENB
-  pinMode(2, OUTPUT); // IN1
-  pinMode(3, OUTPUT); // IN2
-  pinMode(4, OUTPUT); // IN3
-  pinMode(7, OUTPUT); // IN4
-  
-  // Sensores como entrada
-  pinMode(8, INPUT); // SENSOR IZQ
-  pinMode(9, INPUT); // SENSOR DER
+  pinMode(PIN_MOTOR_ENA, OUTPUT); pinMode(PIN_MOTOR_ENB, OUTPUT);
+  pinMode(PIN_IN1, OUTPUT); pinMode(PIN_IN2, OUTPUT);
+  pinMode(PIN_IN3, OUTPUT); pinMode(PIN_IN4, OUTPUT);
+  pinMode(PIN_SENSOR_IZQ, INPUT);
+  pinMode(PIN_SENSOR_DER, INPUT);
+  pinMode(SD_CS_PIN, OUTPUT); 
 
-  // Inicializa la VM
+  Serial.print(F("Init SD..."));
+  if (!SD.begin(SD_CS_PIN)) {
+    Serial.println(F("FALLO SD"));
+    while (1); 
+  }
+  Serial.println(F("OK"));
+
+  File archivo = SD.open("program.bin", FILE_READ);
+  if (!archivo) {
+    Serial.println(F("NO 'program.bin'"));
+    while (1);
+  }
+
   vm_init(&vm);
   
-  // Carga el bytecode y las constantes
-  vm_load_bytecode(&vm, (byte*)BYTECODE);
-  
-  for(int i = 0; i < CONSTANT_COUNT; i++) {
-    vm_add_constant(&vm, CONSTANT_POOL[i]);
+  int32_t numConstantes = 0;
+  archivo.read(&numConstantes, sizeof(int32_t));
+  Serial.print(F("Consts: ")); Serial.println(numConstantes);
+
+  for (int i = 0; i < numConstantes; i++) {
+    float valFloat;
+    archivo.read(&valFloat, sizeof(float));
+    vm_add_constant(&vm, (Value)valFloat);
   }
-  
-  Serial.println("Bytecode cargado. Iniciando ejecucion.");
+
+  int32_t tamanoCodigo = 0;
+  archivo.read(&tamanoCodigo, sizeof(int32_t));
+  Serial.print(F("Bytes: ")); Serial.println(tamanoCodigo);
+
+  if (tamanoCodigo > sizeof(GLOBAL_BYTECODE_BUFFER)) {
+    Serial.println(F("ERROR: Programa muy grande para RAM"));
+    while(1);
+  }
+
+  archivo.read(GLOBAL_BYTECODE_BUFFER, tamanoCodigo);
+  archivo.close();
+
+  vm_load_bytecode(&vm, GLOBAL_BYTECODE_BUFFER);
+  Serial.println(F("--- Ejecutando ---"));
 }
 
 void loop() {
   InterpretResult resultado = vm_interpretar(&vm);
 
   if (resultado == INTERPRET_RUNTIME_ERROR) {
-    Serial.println("--- Error de Runtime de la VM ---");
-    while(1); 
+    Serial.println(F("ERR Runtime"));
+    while(1);
   }
+  
   if (resultado == INTERPRET_OK) {
-     Serial.println("--- Programa finalizado (OP_HALT) ---");
+     Serial.println(F("FIN"));
      while(1); 
   }
 }

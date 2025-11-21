@@ -1,3 +1,8 @@
+/* ================================================================== */
+/* =                       OumiVM/vm.h                              = */
+/* =             (OPTIMIZADO PARA AHORRAR RAM)                      = */
+/* ================================================================== */
+
 #ifndef ROBOT_VM_H
 #define ROBOT_VM_H
 
@@ -5,13 +10,16 @@
 #include <stdbool.h> 
 #include "Arduino.h"
 
-typedef double Value;
+typedef double Value; // 4 bytes en Arduino Uno
 typedef uint8_t byte;
 
-#define STACK_MAX 64      
-#define GLOBALS_MAX 32    
-#define CONST_POOL_MAX 32 
-#define FRAMES_MAX 16
+// --- REDUCCIÓN DE MEMORIA ---
+// Antes: 64, 32, 32, 16
+// Ahora: Ajustado al límite para que quepa con la librería SD
+#define STACK_MAX 32      
+#define GLOBALS_MAX 20    
+#define CONST_POOL_MAX 32 // Tu programa usa unas 30 constantes, no bajar de 30
+#define FRAMES_MAX 8
 
 typedef enum {
     OP_PUSH_CONST, OP_POP, OP_HALT,

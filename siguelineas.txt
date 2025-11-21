@@ -1,23 +1,23 @@
 T_FUNCION miRobotAvance() {
     // Nombres únicos para esta función
-    VARIABLE vel_izq_avance: T_NUMERO = 115 + 20;
-    VARIABLE vel_der_avance: T_NUMERO = 115 + 0;
+    VARIABLE vel_izq_avance: T_NUMERO = 115;
+    VARIABLE vel_der_avance: T_NUMERO = 115;
     motor_izquierdo(vel_izq_avance);
     motor_derecho(vel_der_avance)
 }
 
 T_FUNCION miGirarIzquierdaSuave() {
     // Nombres únicos para esta función
-    VARIABLE vel_izq_giz: T_NUMERO = 32 + 20;
-    VARIABLE vel_der_giz: T_NUMERO = 115 + 0;
+    VARIABLE vel_izq_giz: T_NUMERO = 32;
+    VARIABLE vel_der_giz: T_NUMERO = 115;
     motor_izquierdo(vel_izq_giz);
     motor_derecho(vel_der_giz)
 }
 
 T_FUNCION miGirarDerechaSuave() {
     // Nombres únicos para esta función
-    VARIABLE vel_izq_gde: T_NUMERO = 115 + 20;
-    VARIABLE vel_der_gde: T_NUMERO = 32 + 0;
+    VARIABLE vel_izq_gde: T_NUMERO = 115;
+    VARIABLE vel_der_gde: T_NUMERO = 32;
     motor_izquierdo(vel_izq_gde);
     motor_derecho(vel_der_gde)
 }
