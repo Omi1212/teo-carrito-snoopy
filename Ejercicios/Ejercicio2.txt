@@ -1,0 +1,19 @@
+T_FUNCION miGirarDerechaSuave() {
+    // Nombres únicos para esta función
+    VARIABLE vel_izq_gde: T_NUMERO = 150;
+    VARIABLE vel_der_gde: T_NUMERO = 50;
+    motor_izquierdo(vel_izq_gde);
+    motor_derecho(vel_der_gde)
+}
+
+{
+    
+
+    
+
+    MIENTRAS (VERDADERO) {
+        
+
+        miGirarDerechaSuave()
+    }
+}

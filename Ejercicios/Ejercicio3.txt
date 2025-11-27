@@ -1,0 +1,29 @@
+{
+
+    CONSTANTE VEL_RAPIDA: T_NUMERO = 200;
+    CONSTANTE VEL_MEDIA: T_NUMERO = 150;
+    CONSTANTE VEL_LENTA: T_NUMERO = 60; 
+
+    
+    motor_izquierdo(VEL_LENTA);
+    motor_derecho(VEL_RAPIDA);
+    esperar(3000);
+
+
+    parar();
+    esperar(200);
+
+    
+    motor_izquierdo(VEL_MEDIA);
+    motor_derecho(VEL_MEDIA);
+    esperar(1500);
+
+
+    
+    MIENTRAS (VERDADERO) {
+        motor_izquierdo(100); // Izquierda atrás
+        motor_derecho(200);    // Derecha adelante
+        
+        esperar(50)
+    }
+}

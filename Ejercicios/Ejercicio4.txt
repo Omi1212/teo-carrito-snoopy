@@ -1,0 +1,49 @@
+{
+
+    CONSTANTE VEL_IZQ: T_NUMERO = 200;
+    CONSTANTE VEL_DER: T_NUMERO = 180;
+
+  
+    CONSTANTE PIN_IZQ: T_NUMERO = 8;
+    CONSTANTE PIN_DER: T_NUMERO = 9;
+
+ 
+    VARIABLE contador: T_NUMERO = 0;      
+    VARIABLE detectado_antes: T_NUMERO = 0; 
+    VARIABLE detectado_ahora: T_NUMERO = 0; 
+    
+    VARIABLE lect_izq: T_NUMERO = 0;
+    VARIABLE lect_der: T_NUMERO = 0;
+
+
+    MIENTRAS (contador < 5) {
+        
+     
+        motor_izquierdo(VEL_IZQ);
+        motor_derecho(VEL_DER);
+
+        lect_izq = leer_sensor(PIN_IZQ);
+        lect_der = leer_sensor(PIN_DER);
+
+
+        SI (lect_der == 1) {
+            detectado_ahora = 1
+        } SINO {
+            detectado_ahora = 0
+        };
+
+
+        SI (detectado_antes == 0 && detectado_ahora == 1) {
+            contador = contador + 1
+        };
+
+
+        detectado_antes = detectado_ahora;
+
+  
+        esperar(20)
+    };
+
+
+    parar()
+}

@@ -1,0 +1,16 @@
+{
+    
+    CONSTANTE VEL_IZQ: T_NUMERO = 200;
+    CONSTANTE VEL_DER: T_NUMERO = 150;
+    
+
+    MIENTRAS (VERDADERO) {
+        
+        // Control independiente de cada motor
+        motor_izquierdo(VEL_IZQ);
+        motor_derecho(VEL_DER);
+
+        // Pausa de estabilidad
+        esperar(50)
+    }
+}
