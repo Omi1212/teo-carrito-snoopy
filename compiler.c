@@ -1,6 +1,6 @@
 /* ================================================================== */
 /* =                       compiler.c                               = */
-/* =    (CORREGIDO - Arreglado el typo 'OP_JJUMP')                  = */
+/* =    (CORREGIDO - Compatible con Mac, sin warnings)              = */
 /* ================================================================== */
 
 #include "compiler.h"
@@ -174,7 +174,8 @@ static void compilarNodo(Node* nodo) {
         }
 
         case NODE_NUMERO:
-            emitConstant(atof(nodo->data.numero));
+            /* CAMBIO: Usamos val_num en lugar de numero */
+            emitConstant(atof(nodo->data.val_num));
             break;
         case NODE_BOOLEANO:
             emitConstant(nodo->data.booleano ? 1.0 : 0.0);
@@ -225,7 +226,7 @@ static void compilarNodo(Node* nodo) {
             }
             break;
             
-        case NODE_DECLARACION:
+        case NODE_DECLARACION: {
             if (nodo->data.declaracion.inicializador->type != NODE_NULO) {
                 compilarNodo(nodo->data.declaracion.inicializador);
             } else {
@@ -236,19 +237,22 @@ static void compilarNodo(Node* nodo) {
             if (index == -1) break; 
             emitBytes(OP_SET_GLOBAL, (byte)index);
             break;
+        }
 
-        case NODE_ASIGNACION:
+        case NODE_ASIGNACION: {
             compilarNodo(nodo->data.asignacion.expresion);
             int idx_asig = resolveGlobal(nodo->data.asignacion.nombre);
             if (idx_asig == -1) break; 
             emitBytes(OP_SET_GLOBAL, (byte)idx_asig);
             break;
+        }
             
-        case NODE_IDENT:
+        case NODE_IDENT: {
             int idx_get = resolveGlobal(nodo->data.ident);
             if (idx_get == -1) break; 
             emitBytes(OP_GET_GLOBAL, (byte)idx_get);
             break;
+        }
             
         case NODE_SI:
             compilarNodo(nodo->data.si.condicion);
@@ -256,8 +260,7 @@ static void compilarNodo(Node* nodo) {
             compilarNodo(nodo->data.si.bloque_si);
             
             if (nodo->data.si.bloque_sino->type != NODE_NULO) {
-                /* ================== ¡CAMBIO AQUÍ! ================== */
-                int salto_fin = emitJump(OP_JUMP); /* Corregido de OP_JJUMP */
+                int salto_fin = emitJump(OP_JUMP);
                 patchJump(salto_falso);
                 compilarNodo(nodo->data.si.bloque_sino);
                 patchJump(salto_fin);

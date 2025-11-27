@@ -1,6 +1,6 @@
 /* ================================================================== */
 /* =                         ast.h                                  = */
-/* =    (CORREGIDO - NOMBRES DE OPERADORES EN INGLES UNIFICADOS)    = */
+/* =    (CORREGIDO - Campos renombrados para evitar conflictos)     = */
 /* ================================================================== */
 
 #ifndef AST_H
@@ -35,7 +35,7 @@ typedef enum {
     NODE_PARAMETRO
 } NodeType;
 
-/* --- 2. Tipos de Datos (Unificado) --- */
+/* --- 2. Tipos de Datos --- */
 typedef enum {
     TIPO_NULO,
     TIPO_ERROR,
@@ -45,31 +45,27 @@ typedef enum {
     TIPO_FUNCION
 } TipoDato;
 
-
-/* --- 3. Operadores (Unificados a Inglés) --- */
-
-/* ================== ¡CAMBIO AQUÍ! ================== */
+/* --- 3. Operadores --- */
 typedef enum {
-    /* Binarios (Nombres en Inglés) */
+    /* Binarios */
     AST_OP_ADD, AST_OP_SUB, AST_OP_MUL, AST_OP_DIV, AST_OP_MOD,
-    AST_OP_POW, /* Potencia */
+    AST_OP_POW,
     AST_OP_EQUAL, AST_OP_NOT_EQUAL, AST_OP_IS_NULL,
     AST_OP_GREATER, AST_OP_LESS, AST_OP_GREATER_EQUAL, AST_OP_LESS_EQUAL,
     AST_OP_AND, AST_OP_OR
 } OpBinario;
 
-/* ================== ¡CAMBIO AQUÍ! ================== */
 typedef enum {
-    /* Unarios (Nombres en Inglés) */
-    AST_OP_NOT, /* Negación Lógica */
-    AST_OP_NEGATE, /* Negación Aritmética */
+    /* Unarios */
+    AST_OP_NOT,
+    AST_OP_NEGATE,
     AST_OP_UNARY_PLUS
 } OpUnario;
 
 /* --- 4. Estructura base del Nodo --- */
 struct Node;
 
-/* --- 5. Estructuras de Datos Específicas por Nodo --- */
+/* --- 5. Estructuras de Datos Específicas --- */
 typedef struct {
     struct Node* nodo_actual;
     struct Node* nodo_siguiente;
@@ -141,7 +137,7 @@ typedef struct {
     TipoDato tipo;
 } NodoTipo;
 
-/* --- 6. Estructura del Nodo Base (Contenedor) --- */
+/* --- 6. Estructura del Nodo Base --- */
 typedef struct Node {
     NodeType type;
     int lineno;
@@ -160,14 +156,19 @@ typedef struct Node {
         NodoBinaria           binaria;
         NodoUnaria            unaria;
         NodoTipo              tipo_dato;
+        
+        /* Literales */
         char* ident;
-        char* numero;
-        char* caracter;
+        
+        /* CAMBIO AQUI: Renombrados para evitar conflicto con macros de Bison */
+        char* val_num;    /* Antes 'numero' */
+        char* val_char;   /* Antes 'caracter' */
+        
         int   booleano;
     } data;
 } Node;
 
-/* --- 7. Prototipos de Funciones Constructoras --- */
+/* --- 7. Prototipos --- */
 Node* crearNodo(NodeType type);
 Node* crearNodoPrograma(Node* funciones, Node* bloque);
 Node* crearNodoLista(Node* actual, Node* siguiente);

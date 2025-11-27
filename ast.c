@@ -5,10 +5,8 @@
 
 #include "ast.h"
 
-/* Variable global para el número de línea, actualizada por el lexer */
 extern int yylineno;
 
-/* Función de utilidad para reservar memoria de forma segura */
 Node* crearNodo(NodeType type) {
     Node* nodo = (Node*)malloc(sizeof(Node));
     if (nodo == NULL) {
@@ -16,11 +14,9 @@ Node* crearNodo(NodeType type) {
         exit(1);
     }
     nodo->type = type;
-    nodo->lineno = yylineno; /* Almacena la línea actual */
+    nodo->lineno = yylineno;
     return nodo;
 }
-
-/* --- Implementación de Constructores --- */
 
 Node* crearNodoPrograma(Node* funciones, Node* bloque) {
     Node* nodo = crearNodo(NODE_PROGRAMA);
@@ -43,7 +39,7 @@ Node* crearNodoNulo(void) {
 
 Node* crearNodoDefinicionFuncion(char* nombre, Node* parametros, Node* bloque) {
     Node* nodo = crearNodo(NODE_DEFINICION_FUNCION);
-    nodo->data.def_funcion.nombre = nombre; /* strdup se hace en el parser */
+    nodo->data.def_funcion.nombre = nombre;
     nodo->data.def_funcion.parametros = parametros;
     nodo->data.def_funcion.bloque = bloque;
     return nodo;
@@ -52,7 +48,7 @@ Node* crearNodoDefinicionFuncion(char* nombre, Node* parametros, Node* bloque) {
 Node* crearNodoParametro(Node* tipo, char* nombre) {
     Node* nodo = crearNodo(NODE_PARAMETRO);
     nodo->data.parametro.tipo = tipo;
-    nodo->data.parametro.nombre = nombre; /* strdup se hace en el parser */
+    nodo->data.parametro.nombre = nombre;
     return nodo;
 }
 
@@ -60,7 +56,7 @@ Node* crearNodoDeclaracion(int es_const, Node* tipo, char* nombre, Node* init) {
     Node* nodo = crearNodo(NODE_DECLARACION);
     nodo->data.declaracion.es_constante = es_const;
     nodo->data.declaracion.tipo = tipo;
-    nodo->data.declaracion.nombre = nombre; /* strdup se hace en el parser */
+    nodo->data.declaracion.nombre = nombre;
     nodo->data.declaracion.inicializador = init;
     return nodo;
 }
@@ -91,14 +87,14 @@ Node* crearNodoPara(Node* init, Node* cond, Node* inc, Node* bloque) {
 
 Node* crearNodoAsignacion(char* nombre, Node* expr) {
     Node* nodo = crearNodo(NODE_ASIGNACION);
-    nodo->data.asignacion.nombre = nombre; /* strdup se hace en el parser */
+    nodo->data.asignacion.nombre = nombre;
     nodo->data.asignacion.expresion = expr;
     return nodo;
 }
 
 Node* crearNodoLlamadaFuncion(char* nombre, Node* args) {
     Node* nodo = crearNodo(NODE_LLAMADA_FUNCION);
-    nodo->data.llamada_funcion.nombre = nombre; /* strdup se hace en el parser */
+    nodo->data.llamada_funcion.nombre = nombre;
     nodo->data.llamada_funcion.argumentos = args;
     return nodo;
 }
@@ -120,19 +116,21 @@ Node* crearNodoUnaria(OpUnario op, Node* opdo) {
 
 Node* crearNodoIdent(char* nombre) {
     Node* nodo = crearNodo(NODE_IDENT);
-    nodo->data.ident = nombre; /* strdup se hace en el parser */
+    nodo->data.ident = nombre;
     return nodo;
 }
 
 Node* crearNodoNumero(char* valor) {
     Node* nodo = crearNodo(NODE_NUMERO);
-    nodo->data.numero = valor; /* strdup se hace en el parser */
+    /* CAMBIO: numero -> val_num */
+    nodo->data.val_num = valor;
     return nodo;
 }
 
 Node* crearNodoCaracter(char* valor) {
     Node* nodo = crearNodo(NODE_CARACTER);
-    nodo->data.caracter = valor; /* strdup se hace en el parser */
+    /* CAMBIO: caracter -> val_char */
+    nodo->data.val_char = valor;
     return nodo;
 }
 
@@ -148,9 +146,6 @@ Node* crearNodoTipo(TipoDato tipo) {
     return nodo;
 }
 
-/* * Implementación de strdup (si no está disponible en C estándar estricto).
- * Es necesaria para copiar `yytext`.
- */
 #ifndef strdup
 char* strdup(const char* s) {
     if (s == NULL) return NULL;

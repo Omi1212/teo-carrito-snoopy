@@ -40,7 +40,7 @@ El primer paso es crear el ejecutable `mi_compilador` desde el código fuente C.
 1.  Abre tu terminal (MSYS2 UCRT64 en Windows / Terminal en Mac).
 2.  Navega a la carpeta del proyecto:
     ```bash
-    cd /ruta/a/tu/carpeta/teo-carrito-snoopy
+    cd teo-carrito-snoopy
     ```
 3.  Ejecuta el comando de construcción:
 
@@ -69,12 +69,12 @@ Ahora usaremos el compilador para traducir tu archivo de texto (`.txt`) a un arc
 
     **En Windows:**
     ```bash
-    ./mi_compilador.exe siguelineas.txt
+    ./mi_compilador Ejercicios/siguelineas.txt
     ```
 
     **En macOS:**
     ```bash
-    ./mi_compilador siguelineas.txt
+    ./mi_compilador Ejercicios/siguelineas.txt
     ```
 
 ✅ **Resultado:** Si no hay errores, aparecerá un nuevo archivo llamado **`program.bin`** en la carpeta.
